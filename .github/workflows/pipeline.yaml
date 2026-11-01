@@ -10,7 +10,7 @@ on:
     workflow_dispatch:
 
     schedule:
-      - cron: '25 19 * * *' # 16:25 todos os dias em São Paulo (UTC-3)
+      - cron: '35 19 * * *' # 16:35 todos os dias em São Paulo (UTC-3)
 
     push:
       branches:
