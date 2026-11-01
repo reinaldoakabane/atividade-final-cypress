@@ -2,148 +2,117 @@
 
 const cadastro = require('../modules/cadastro/index')
 const login = require('../modules/login/login')
-
+const produtos = {
+    ...require('../modules/produtos/todos_produtos'),
+    ...require('../modules/produtos/detalhes.produto'),
+    ...require('../modules/produtos/buscar_produto')
+}
+const subscrever = require('../modules/subscrever/subscrever_com_email_valido')
+const navegar = require('../modules/navegar/navegar')
+const { usuarioExistente, criarUsuarioTeste, dadosCompra } = require('../modules/dados_teste')
+const compra = {
+    ...require('../modules/compra/validar_endereco_compra'),
+    ...require('../modules/compra/revisar_pedido'),
+    ...require('../modules/compra/pagamento_e_validacao_mensagem_de_sucesso'),
+    ...require('../modules/compra/efetuar_compra')
+}
 describe('Automation Exercise', () => {
     // Cadastro
-    // cy.get() -> elementos baseados em css selector
-    // cy.contains() -> elementos baseados em texto
 
-    it('Cadastrar um novo usuário com sucesso', () => {
-        cy.visit('/')
+    it('Caso de Teste 01 - Cadastrar um novo usuário com sucesso', () => {
+        const usuario = criarUsuarioTeste()
+
+        navegar.navegar('/')
         cy.get('a[href*=login]').click()
-        // Iniciar Cadastro
-        cadastro.iniciarCadastro('Test 123', `pgats-aut-test-${Date.now()}@mail.com`)
-        // Preencher Cadastro
-        cadastro.preencherCadastro()
-        // Verificar Cadastro
+        cadastro.iniciarCadastro(usuario)
+        cadastro.preencherCadastro(usuario)
         cadastro.verificarSeCadastroFoiEfetuadoComSucesso()
-
     });
 
-    it('Efetuar Login de Usuário com email e senha corretos', () => {
-        cy.visit('/login')
-        // Preencher Login
-        login.preencherlogin('pgats-aut-test-1793149008994@mail.com', '12345')
-        // Verificar Login
-        login.verificarLoginComSucesso()
-
+    it('Caso de Teste 02 - Efetuar Login de Usuário com email e senha corretos', () => {
+        navegar.navegar('/login')
+        login.preencherlogin(usuarioExistente.email, usuarioExistente.senha)
+        login.verificarLoginComSucesso(usuarioExistente.nome)
     });
 
-    it('Efetuar Login de Usuário email e senha INCORRETOS', () => {
-        cy.visit('/login')
+    it('Caso de Teste 03 - Efetuar Login de Usuário email e senha INCORRETOS', () => {
+        navegar.navegar('/login')
 
         // Preencher Login
-        login.preencherlogin('pgats-aut-test-1793149008994@mail.com', '54321')
-
-        // Verificar se mensagem de erro foi exibida no Login
+        login.preencherlogin(usuarioExistente.email, usuarioExistente.senhaIncorreta)
         login.verificarSeMensagemDeErroFoiExibidaNoLogin()
-
     });
 
-    it('Efetuar Logout', () => {
-        cy.visit('/login')
-        // Preencher Login
-        login.preencherlogin('pgats-aut-test-1793149008994@mail.com', '12345')
-        // Efetuar Logout
+    it('Caso de Teste 04 - Efetuar Logout', () => {
+        navegar.navegar('/login')
+        login.preencherlogin(usuarioExistente.email, usuarioExistente.senha)
         login.efetuarLogout()
-        // Verificar se o usuario foi deslogado
         login.verificarSeUsuarioFoiDeslogado()
-
     });
 
-    it('Tentar cadastrar usuário com e-mail já cadastrado', () => {
-        cy.visit('/')
+    it('Caso de Teste 05 - Tentar cadastrar usuário com e-mail já cadastrado', () => {
+        navegar.navegar('/')
         cy.get('a[href*=login]').click()
-        cadastro.iniciarCadastro('Test 123', 'pgats-aut-test-1793149008994@mail.com')
+        cadastro.iniciarCadastro(usuarioExistente)
         cadastro.verificarSeMensagemDeCadastroExistenteFoiExibida()
     });
 
+    it('Caso de Teste 08 - Verificar todos produtos e uma página do produto detalhado', () => {
+        navegar.navegar('/')
+        produtos.selecionarTodosProdutos()
+        produtos.detalhesProduto('Blue Top', 'Category: Women > Tops', 'Rs. 500', 'Availability: In Stock', 'Condition: New', 'Brand: Polo')
+    });
+
+    it('Caso de Teste 09 - Buscar um produto', () => {
+        navegar.navegar('/')
+        produtos.selecionarTodosProdutos()
+        produtos.buscarProduto('Blue Top')
+
+    });
+
+    it('Caso de Teste 10 - Validar subscrição na home page', () => {
+        navegar.navegar('/')
+        subscrever.subscreverComEmailValido(usuarioExistente.email)
+    });
+
+    it('Caso de Teste 15 - Criar uma ordem: Registrar antes do checkout', () => {
+        const usuario = criarUsuarioTeste()
+        const produtosPedido = ['Stylish Dress', 'Sleeveless Dress']
+
+        navegar.navegar('/')
+        cy.get('a[href="/login"]').click()
+        cadastro.iniciarCadastro(usuario)
+        cadastro.preencherCadastro(usuario)
+        cadastro.verificarSeCadastroFoiEfetuadoComSucesso()
+        cy.get('[data-qa="continue-button"]').click()
+        login.verificarLoginComSucesso(usuario.nome)
+        compra.efetuarUmaCompra(produtosPedido)
+        compra.validarEnderecoCompra(dadosCompra.endereco)
+        compra.revisarPedido(produtosPedido, dadosCompra.comentario)
+        compra.pagamentoEValidacaoMensagemDeSucesso(dadosCompra.pagamento)
+        cadastro.deletarContaEValidarMensagem()
+    });
+
+    it('Caso de Teste 16 - Criar uma ordem: Login antes do checkout', () => {
+        const produtosPedido = ['Men Tshirt', 'Fancy Green Top']
+        const usuario = criarUsuarioTeste()
+
+        navegar.navegar('/')
+        cy.get('a[href="/login"]').click()
+        cadastro.iniciarCadastro(usuario)
+        cadastro.preencherCadastro(usuario)
+        cadastro.verificarSeCadastroFoiEfetuadoComSucesso()
+        cy.get('[data-qa="continue-button"]').click()
+        login.efetuarLogout()
+        navegar.navegar('/')
+        cy.get('a[href="/login"]').click()
+        login.preencherlogin(usuario.email, usuario.senha)
+        login.verificarLoginComSucesso(usuario.nome)
+        compra.efetuarUmaCompra(produtosPedido)
+        compra.validarEnderecoCompra(dadosCompra.endereco)
+        compra.revisarPedido(produtosPedido, dadosCompra.comentario)
+        compra.pagamentoEValidacaoMensagemDeSucesso(dadosCompra.pagamento)
+        cadastro.deletarContaEValidarMensagem()
+    });
+
 });
-
-/* CADASTRO
-
-function iniciarCadastro(nome, email) {
-    // cy.get('[data-qa="signup-name"]').type(`Test 123`)
-    // cy.get('[data-qa="signup-email"]').type(`pgats-aut-test-${Date.now()}@mail.com`)
-    cy.get('[data-qa="signup-name"]').type(nome)
-    cy.get('[data-qa="signup-email"]').type(email)
-    cy.get('[data-qa="signup-button"]').click()
-}
-
-function preencherCadastro() {
-    cy.get('#id_gender2').check()
-    cy.get('[data-qa="password"]').type('12345')
-    // Selects e Comboboxes -> select
-    cy.get('[data-qa="days"]').select('11')
-    cy.get('[data-qa="months"]').select('December')
-    cy.get('[data-qa="years"]').select('1989')
-    // checkboxes -> check
-    cy.get('#newsletter').check()
-    cy.get('#optin').check()
-    cy.get('[data-qa="first_name"]').type('Test')
-    cy.get('[data-qa="last_name"]').type('123')
-    cy.get('[data-qa="company"]').type('PGATS')
-    cy.get('[data-qa="address"]').type('Street 1')
-    cy.get('[data-qa="country"]').select('United States')
-    cy.get('[data-qa="state"]').type('Orlando')
-    cy.get('[data-qa="city"]').type('Florida')
-    cy.get('[data-qa="zipcode"]').type('32819')
-    cy.get('[data-qa="mobile_number"]').type('123456789')
-    cy.get('[data-qa="create-account"]').click()
-}
-
-function verificarSeCadastroFoiEfetuadoComSucesso() {
-    //cy.get('[data-qa="create-account"]').click()
-    cy.get('[data-qa="account-created"]')
-        .should('be.visible')
-        .and('contain', 'Account Created!')
-}
-*/
-
-/* LOGIN
-
-function preencherlogin(email, senha) {
-    // cy.get('[data-qa="login-email"]').type('pgats-aut-test-1793149008994@mail.com')
-    // cy.get('[data-qa="login-password"]').type('12345')
-    cy.get('[data-qa="login-email"]').type(email)
-    cy.get('[data-qa="login-password"]').type(senha)
-    cy.get('[data-qa="login-button"]').click()
-}
-
-function verificarLoginComSucesso() {
-    cy.contains('.navbar-nav li', 'Test 123')
-    cy.get('.navbar-nav li')
-        .contains('Test 123')
-        .should('be.visible')
-}
-
-function verificarSeMensagemDeErroFoiExibidaNoLogin() {
-    cy.get('form[action*="login"] > p')
-        .should('exist')
-        .should('be.visible')
-        .should('contain', 'Your email or password is incorrect!')
-        .and('contain.text', 'Your email or password is incorrect!')
-}
-
-function efetuarLogout() {
-    cy.get('a[href*="logout"]')
-        .should('be.visible')
-        .click()
-}
-
-function verificarSeUsuarioFoiDeslogado() {
-    cy.get('.login-form > h2').should('be.visible')
-    cy.get('a[href*="logout"]').should('not.exist')
-    cy.get('[action*="login"]').should('be.visible');
-    cy.url().should('include', 'login')
-}
-
-function verificarSeMensagemDeCadastroExistenteFoiExibida() {
-    cy.get('form[action*=signup] p')
-        .should('exist')
-        .should('be.visible')
-        .should('contain', 'Email Address already exist!')
-        .and('contain.text', 'Email Address already exist!')
-}
-
-*/

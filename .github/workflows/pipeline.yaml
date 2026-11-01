@@ -1,0 +1,50 @@
+# Pipeline de Integração Contínua
+
+# Nome da pipeline
+name: 'Pipeline da atividade final de Automação Web'
+
+# Gatilhos / triggers - regras de disparo
+
+# Gatilho manual = workflow dispatch
+on:
+    workflow_dispatch:
+
+    schedule:
+      - cron: '25 19 * * *' # 16:25 todos os dias em São Paulo (UTC-3)
+
+    push:
+      branches:
+        - main
+
+# Tarefas dento da pipeline = jobs
+jobs:
+    # Nome do Job
+    unit-tests:
+        # Maquina onde o job vai rodar
+        runs-on: ubuntu-latest
+
+        # Passos do job
+        steps:
+            # Clone do projeto
+            - uses: actions/checkout@v4
+
+            # Instalação do node
+            - uses: actions/setup-node@v4
+              with:
+                node-version: 22.x
+
+            # Instalação das dependencias
+            - name: Instalando dependencias
+              run: npm ci
+
+            #Executar os testes wweb
+            - name: Executando testes web e2e
+              run: npm test
+
+            # Artifacts da pipeline
+            - name: Upload report
+              uses: actions/upload-artifact@v4
+              if: always() # Mesmo se falhar o relatório ainda é salvo
+              with:
+                name: mochawesome-report
+                path: cypress/reports/html/

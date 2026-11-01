@@ -8,10 +8,10 @@ function preencherlogin(email, senha) {
     cy.get('[data-qa="login-button"]').click()
 }
 
-function verificarLoginComSucesso() {
-    cy.contains('.navbar-nav li', 'Test 123')
+function verificarLoginComSucesso(user) {
+    cy.contains('.navbar-nav li', user)
     cy.get('.navbar-nav li')
-        .contains('Test 123')
+        .contains(user)
         .should('be.visible')
 }
 

@@ -1,37 +1,34 @@
 // CADASTRO
 
-function iniciarCadastro(nome, email) {
-    // cy.get('[data-qa="signup-name"]').type(`Test 123`)
-    // cy.get('[data-qa="signup-email"]').type(`pgats-aut-test-${Date.now()}@mail.com`)
-    cy.get('[data-qa="signup-name"]').type(nome)
-    cy.get('[data-qa="signup-email"]').type(email)
+function iniciarCadastro(usuario) {
+    cy.get('[data-qa="signup-name"]').type(usuario.nome)
+    cy.get('[data-qa="signup-email"]').type(usuario.email)
     cy.get('[data-qa="signup-button"]').click()
 }
 
-function preencherCadastro() {
+function preencherCadastro(usuario) {
     cy.get('#id_gender2').check()
-    cy.get('[data-qa="password"]').type('12345')
+    cy.get('[data-qa="password"]').type(usuario.senha)
     // Selects e Comboboxes -> select
-    cy.get('[data-qa="days"]').select('11')
-    cy.get('[data-qa="months"]').select('December')
-    cy.get('[data-qa="years"]').select('1989')
+    cy.get('[data-qa="days"]').select(usuario.diaNascimento)
+    cy.get('[data-qa="months"]').select(usuario.mesNascimento)
+    cy.get('[data-qa="years"]').select(usuario.anoNascimento)
     // checkboxes -> check
     cy.get('#newsletter').check()
     cy.get('#optin').check()
-    cy.get('[data-qa="first_name"]').type('Test')
-    cy.get('[data-qa="last_name"]').type('123')
-    cy.get('[data-qa="company"]').type('PGATS')
-    cy.get('[data-qa="address"]').type('Street 1')
-    cy.get('[data-qa="country"]').select('United States')
-    cy.get('[data-qa="state"]').type('Orlando')
-    cy.get('[data-qa="city"]').type('Florida')
-    cy.get('[data-qa="zipcode"]').type('32819')
-    cy.get('[data-qa="mobile_number"]').type('123456789')
+    cy.get('[data-qa="first_name"]').type(usuario.primeiroNome)
+    cy.get('[data-qa="last_name"]').type(usuario.sobrenome)
+    cy.get('[data-qa="company"]').type(usuario.empresa)
+    cy.get('[data-qa="address"]').type(usuario.rua)
+    cy.get('[data-qa="country"]').select(usuario.pais)
+    cy.get('[data-qa="state"]').type(usuario.estado)
+    cy.get('[data-qa="city"]').type(usuario.cidade)
+    cy.get('[data-qa="zipcode"]').type(usuario.cep)
+    cy.get('[data-qa="mobile_number"]').type(usuario.telefone)
     cy.get('[data-qa="create-account"]').click()
 }
 
 function verificarSeCadastroFoiEfetuadoComSucesso() {
-    //cy.get('[data-qa="create-account"]').click()
     cy.get('[data-qa="account-created"]')
         .should('be.visible')
         .and('contain', 'Account Created!')
@@ -45,9 +42,19 @@ function verificarSeMensagemDeCadastroExistenteFoiExibida() {
         .and('contain.text', 'Email Address already exist!')
 }
 
+function deletarContaEValidarMensagem() {
+    // Deletando a conta
+    cy.get('a[href="/delete_account"]').click()
+    cy.get('[data-qa="account-deleted"]')
+        .should('be.visible')
+        .and('contain', 'Account Deleted!')
+    cy.get('[data-qa="continue-button"]').click()
+}
+
 module.exports = {
     iniciarCadastro,
     preencherCadastro,
     verificarSeCadastroFoiEfetuadoComSucesso,
-    verificarSeMensagemDeCadastroExistenteFoiExibida
+    verificarSeMensagemDeCadastroExistenteFoiExibida,
+    deletarContaEValidarMensagem
 }
