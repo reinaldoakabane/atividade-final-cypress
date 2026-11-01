@@ -19,7 +19,8 @@ on:
 # Tarefas dento da pipeline = jobs
 jobs:
     # Nome do Job
-    unit-tests:
+    e2e-tests:
+        name: Testes E2E
         # Maquina onde o job vai rodar
         runs-on: ubuntu-latest
 
